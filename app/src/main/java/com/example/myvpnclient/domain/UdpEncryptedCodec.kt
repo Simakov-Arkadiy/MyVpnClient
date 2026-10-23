@@ -15,7 +15,11 @@ class UdpEncryptedCodec(
     private val clientId: Byte,
     private val ownPrefix: Byte,
 ) {
-    companion object { const val NONCE = 12; const val TAG = 16; const val HEADER = 29 }
+    companion object {
+        const val NONCE = 12;
+        const val TAG = 16;
+        const val HEADER = 29
+    }
 
     private val chacha = cipherName == "ChaCha20Poly1305"
     private val key = SecretKeySpec(keyBytes, if (chacha) "ChaCha20" else "AES")

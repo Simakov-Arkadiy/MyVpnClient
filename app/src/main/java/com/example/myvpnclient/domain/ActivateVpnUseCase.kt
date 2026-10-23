@@ -3,9 +3,10 @@ package com.example.myvpnclient.domain
 import android.app.Application
 import android.content.Intent
 import androidx.core.content.ContextCompat
+import javax.inject.Inject
 
-class ActivateVpnUseCase {
-    suspend operator fun invoke(
+class ActivateVpnUseCase @Inject constructor() {
+    operator fun invoke(
         authCode: String,
         serverHost: String,
         serverPort: Int,

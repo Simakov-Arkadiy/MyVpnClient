@@ -1,4 +1,4 @@
-package com.example.myvpnclient.presentation.DI
+package com.example.myvpnclient.presentation.di
 
 import com.example.myvpnclient.data.VpnApi
 import com.example.myvpnclient.data.VpnRepositoryImpl

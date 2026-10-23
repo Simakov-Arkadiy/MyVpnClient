@@ -1,4 +1,4 @@
-package com.example.myvpnclient.presentation.DI
+package com.example.myvpnclient.presentation.di
 
 import android.app.Application
 import com.example.myvpnclient.domain.MyVpnService
@@ -15,6 +15,7 @@ internal interface VpnComponent {
     fun inject(service: MyVpnService)
 
     fun mainScreenViewModelFactory(): MainScreenViewModelFactory
+
     @Component.Factory
     interface Factory {
         fun create(

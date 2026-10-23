@@ -23,6 +23,14 @@ fun MainScreen(viewModel: MainScreenViewModel) {
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Button(
+            onClick = viewModel::onClickButtonDisConnect,
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .height(50.dp),
+        ) {
+            Text(text = "Connect")
+        }
         TextField(
             value = viewModel.valueForAuthCodeTextField.value,
             onValueChange = viewModel::onAuthCodeSymbolChanged,
