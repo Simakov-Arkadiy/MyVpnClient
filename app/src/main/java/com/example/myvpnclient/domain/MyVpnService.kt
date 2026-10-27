@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.myvpnclient.MyApp
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
+import okio.ByteString.Companion.decodeBase64
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.InetSocketAddress
@@ -24,6 +26,7 @@ import java.net.PortUnreachableException
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
 import javax.inject.Inject
+import android.util.Base64
 
 class MyVpnService() : VpnService() {
     @Inject
@@ -46,6 +49,7 @@ class MyVpnService() : VpnService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("VPNLog", "Service запущен.")
         startForeground(1, buildNotification())
 
         when (intent?.action) {
@@ -125,11 +129,12 @@ class MyVpnService() : VpnService() {
         val authCode = intent.getStringExtra("authCode")
         val serverHost = intent.getStringExtra("serverHost")
         val serverPort = intent.getIntExtra("serverPort", 0)
+        Log.d("VPNLog", "$authCode $serverPort $serverHost")
 
         tunnelJob = scope.launch {
-            VpnService.prepare((application as MyApp))
 
             val result = repository.shakeHands(authCode, serverHost, serverPort)
+
             if (result.isSuccess) {
                 val channel = DatagramChannel.open()
                 ch = channel
@@ -147,13 +152,13 @@ class MyVpnService() : VpnService() {
                 }
                 tun = localTunnel
                 val cipher = UdpEncryptedCodec(
-                    "ChaCha20Poly1305",
-                    result.getOrThrow().key,
-                    result.getOrThrow().clientId,
-                    result.getOrThrow().firstNonce
+                    result.getOrThrow().cipher,
+                    Base64.decode(result.getOrThrow().key, Base64.DEFAULT),
+                    result.getOrThrow().clientId.toByte(),
+                    result.getOrThrow().firstNonce.toByte(),
                 )
 
-                val nonce = NonceCounter(result.getOrThrow().firstNonce)
+                val nonce = NonceCounter(result.getOrThrow().firstNonce.toByte())
 
                 coroutineScope {
                     launch { tunToUdp(localTunnel, channel, cipher, nonce) }

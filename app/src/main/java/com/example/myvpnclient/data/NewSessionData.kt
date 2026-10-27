@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class NewSessionData(
     override val cipher: String,
-    override val clientId: Byte,
-    override val key: ByteArray,
-    override val firstNonce: Byte,
+    override val clientId: Int,
+    override val key: String,
+    override val firstNonce: Int,
     override val tunIp: String,
     override val port: Int,
 ): SessionData

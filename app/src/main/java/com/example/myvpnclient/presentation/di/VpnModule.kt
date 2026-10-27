@@ -28,7 +28,7 @@ abstract class VpnModule {
         @Provides
         @Singleton
         fun provideRetrofit(json: Json): Retrofit = Retrofit.Builder()
-            .baseUrl("https://api.example.com/v1/")
+            .baseUrl("http://localhost/")
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
 

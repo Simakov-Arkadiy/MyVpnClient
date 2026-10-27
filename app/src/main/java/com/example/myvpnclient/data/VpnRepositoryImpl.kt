@@ -10,9 +10,10 @@ class VpnRepositoryImpl @Inject constructor(val vpnApi: VpnApi) : VpnRepository 
         serverHost: String?,
         serverPort: Int?,
     ): Result<NewSessionData> {
-
+        Log.d("VPNLog", "shakeHands вызван!")
         return runCatching {
-            val response = vpnApi.shakeHands(authCode, listOf("ChaCha20Poly1305", "AesGcm"))
+            val response = vpnApi.shakeHands("http://${serverHost}:${serverPort.toString()}/session/${authCode}", listOf("ChaCha20Poly1305", "AesGcm"))
+
             Log.d("VPNLog", "${response.code()}")
 
             val body = response.body()
@@ -29,6 +30,8 @@ class VpnRepositoryImpl @Inject constructor(val vpnApi: VpnApi) : VpnRepository 
                 body.port,
             )
             newSessionData
+        }.onFailure { e ->
+            Log.d("VPNLog", "shakeHands не удался", e)
         }
     }
 }

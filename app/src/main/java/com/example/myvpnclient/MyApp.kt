@@ -5,7 +5,7 @@ import com.example.myvpnclient.presentation.di.DaggerVpnComponent
 import com.example.myvpnclient.presentation.di.VpnComponent
 
 class MyApp : Application() {
-    lateinit var appComponent: VpnComponent
+    internal lateinit var appComponent: VpnComponent
         private set
 
     override fun onCreate() {
