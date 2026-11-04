@@ -18,7 +18,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
-import okio.ByteString.Companion.decodeBase64
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.InetSocketAddress
@@ -30,7 +29,7 @@ import android.util.Base64
 
 class MyVpnService() : VpnService() {
     @Inject
-    lateinit var repository: VpnRepository
+    lateinit var repository: ShakeHandsRepository
     private var tunnelJob: Job? = null
 
     @Volatile
@@ -129,6 +128,8 @@ class MyVpnService() : VpnService() {
         val authCode = intent.getStringExtra("authCode")
         val serverHost = intent.getStringExtra("serverHost")
         val serverPort = intent.getIntExtra("serverPort", 0)
+        val allowedPackages = intent.getStringArrayExtra("allowedPackages")
+
         Log.d("VPNLog", "$authCode $serverPort $serverHost")
 
         tunnelJob = scope.launch {
@@ -142,11 +143,17 @@ class MyVpnService() : VpnService() {
                 channel.connect(InetSocketAddress(serverHost, result.getOrThrow().port))
 
                 val builder = Builder()
-                val localTunnel = builder
+                builder
                     .addAddress(result.getOrThrow().tunIp, 32)
                     .addRoute("0.0.0.0", 0)
                     .setBlocking(true)
-                    .establish()
+                if (allowedPackages != null) {
+                    allowedPackages.forEach { packageName ->
+                        builder.addAllowedApplication(packageName)
+                        Log.d("VPNLog", packageName)
+                    }
+                }
+                val localTunnel = builder.establish()
                 if (localTunnel == null) {
                     throw NullPointerException("Не удалось создать tunAdapter.")
                 }

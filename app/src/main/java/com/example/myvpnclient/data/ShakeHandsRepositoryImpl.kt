@@ -1,10 +1,15 @@
 package com.example.myvpnclient.data
 
+import android.app.Application
 import android.util.Log
-import com.example.myvpnclient.domain.VpnRepository
+import com.example.myvpnclient.domain.ShakeHandsRepository
 import javax.inject.Inject
 
-class VpnRepositoryImpl @Inject constructor(val vpnApi: VpnApi) : VpnRepository {
+class ShakeHandsRepositoryImpl @Inject constructor(
+    val vpnApi: VpnApi,
+    val application: Application
+) :
+    ShakeHandsRepository {
     override suspend fun shakeHands(
         authCode: String?,
         serverHost: String?,
@@ -12,7 +17,10 @@ class VpnRepositoryImpl @Inject constructor(val vpnApi: VpnApi) : VpnRepository 
     ): Result<NewSessionData> {
         Log.d("VPNLog", "shakeHands вызван!")
         return runCatching {
-            val response = vpnApi.shakeHands("http://${serverHost}:${serverPort.toString()}/session/${authCode}", listOf("ChaCha20Poly1305", "AesGcm"))
+            val response = vpnApi.shakeHands(
+                "http://${serverHost}:${serverPort.toString()}/session/${authCode}",
+                listOf("ChaCha20Poly1305", "AesGcm")
+            )
 
             Log.d("VPNLog", "${response.code()}")
 

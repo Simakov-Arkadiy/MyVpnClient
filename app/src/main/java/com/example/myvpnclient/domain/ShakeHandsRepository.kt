@@ -1,7 +1,7 @@
 package com.example.myvpnclient.domain
 
 
-interface VpnRepository {
+interface ShakeHandsRepository {
     suspend fun shakeHands(
         authCode: String?,
         serverHost: String?,

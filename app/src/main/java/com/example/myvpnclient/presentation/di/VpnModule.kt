@@ -1,8 +1,10 @@
 package com.example.myvpnclient.presentation.di
 
+import com.example.myvpnclient.data.PreferenceRepositoryImpl
 import com.example.myvpnclient.data.VpnApi
-import com.example.myvpnclient.data.VpnRepositoryImpl
-import com.example.myvpnclient.domain.VpnRepository
+import com.example.myvpnclient.data.ShakeHandsRepositoryImpl
+import com.example.myvpnclient.domain.PreferenceRepository
+import com.example.myvpnclient.domain.ShakeHandsRepository
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Binds
 import dagger.Module
@@ -17,7 +19,11 @@ abstract class VpnModule {
 
     @Binds
     @Singleton
-    abstract fun bindVpnRepository(impl: VpnRepositoryImpl): VpnRepository
+    abstract fun bindShakeHandsRepository(impl: ShakeHandsRepositoryImpl): ShakeHandsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPreferenceRepository(impl: PreferenceRepositoryImpl): PreferenceRepository
 
     @Module
     companion object {

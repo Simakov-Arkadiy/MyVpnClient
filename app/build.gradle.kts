@@ -65,4 +65,5 @@ dependencies {
     implementation(libs.dagger)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     ksp(libs.dagger.compiler)
+    implementation(libs.androidx.datastore.preferences)
 }
