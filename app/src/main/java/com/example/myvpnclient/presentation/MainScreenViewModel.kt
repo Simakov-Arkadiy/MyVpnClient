@@ -1,9 +1,7 @@
 package com.example.myvpnclient.presentation
 
 import android.app.Application
-import android.content.pm.ApplicationInfo
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
@@ -12,12 +10,12 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myvpnclient.domain.ActivateVpnUseCase
 import com.example.myvpnclient.domain.SavePreferenceUseCase
 import com.example.myvpnclient.domain.GetListInstalledApplicationUseCase
 import com.example.myvpnclient.domain.GetPreferenceUseCase
 import com.example.myvpnclient.domain.InactivateVpnUseCase
+import com.example.myvpnclient.domain.InstalledApp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -43,12 +41,12 @@ class MainScreenViewModel(
     private val _valueForServerPortTextField = mutableStateOf(TextFieldValue(text = ""))
     val valueForServerPortTextField: State<TextFieldValue> = _valueForServerPortTextField
 
-    private val _isFormValid = mutableStateOf(false)
-    val isFormValid: State<Boolean> = _isFormValid
+    private val _isButtonConnectEnable = mutableStateOf(false)
+    val isButtonConnectEnable: State<Boolean> = _isButtonConnectEnable
 
-    private val _valueForDropDown = mutableStateOf<List<ApplicationInfo>>(emptyList())
+    private val _valueForDropDown = mutableStateOf<List<InstalledApp>>(emptyList())
 
-    val valueForDropDown: State<List<ApplicationInfo>> = _valueForDropDown
+    val valueForDropDown: State<List<InstalledApp>> = _valueForDropDown
 
     private val _isCheckBoxActive = mutableStateListOf<Boolean>()
 
@@ -56,39 +54,36 @@ class MainScreenViewModel(
 
     init {
         viewModelScope.launch {
-            Log.d("VPNLog","я в инит блоке")
             _valueForDropDown.value = getListInstalledApplicationUseCase.invoke(application)
             _isCheckBoxActive.clear()
             _isCheckBoxActive.addAll(List(_valueForDropDown.value.size) { false })
             getPreferenceUseCase.invoke().first().let {
                 _valueForAuthCodeTextField.value = TextFieldValue(text = it.authCode)
-                Log.d("VPNLog", it.authCode)
                 _valueForServerHostTextField.value = TextFieldValue(text = it.host)
-                Log.d("VPNLog", it.host)
                 _valueForServerPortTextField.value = TextFieldValue(text = it.port)
-                Log.d("VPNLog", it.port)
                 _isCheckBoxActive.indices.forEach { i ->
                     _isCheckBoxActive[i] = it.checkBoxState.getOrNull(i) ?: false
                 }
             }
+            _isButtonConnectEnable.value = validate()
         }
     }
 
     fun onAuthCodeSymbolChanged(newValue: TextFieldValue) {
         _valueForAuthCodeTextField.value = newValue
-        _isFormValid.value = validate()
+        _isButtonConnectEnable.value = validate()
         savePreference("auth_code", _valueForAuthCodeTextField.value.text)
     }
 
     fun onServerHostSymbolChanged(newValue: TextFieldValue) {
         _valueForServerHostTextField.value = newValue
-        _isFormValid.value = validate()
+        _isButtonConnectEnable.value = validate()
         savePreference("server_host", _valueForServerHostTextField.value.text)
     }
 
     fun onServerPortSymbolChanged(newValue: TextFieldValue) {
         _valueForServerPortTextField.value = newValue
-        _isFormValid.value = validate()
+        _isButtonConnectEnable.value = validate()
         savePreference("server_port", _valueForServerPortTextField.value.text)
     }
 
@@ -97,7 +92,8 @@ class MainScreenViewModel(
             ?: false)
 
     fun onClickButtonConnect() {
-        if (_isFormValid.value) {
+        if (_isButtonConnectEnable.value) {
+            _isButtonConnectEnable.value = false
             job = viewModelScope.launch {
                 val allowedPackageList = mutableListOf("")
                 _valueForDropDown.value.forEachIndexed { index, info ->
@@ -120,6 +116,7 @@ class MainScreenViewModel(
 
     fun onClickButtonDisConnect() {
         viewModelScope.launch {
+            _isButtonConnectEnable.value = validate()
             inactivateVpnUseCase.invoke(application)
         }
     }

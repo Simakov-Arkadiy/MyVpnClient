@@ -24,7 +24,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -32,11 +31,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.core.graphics.drawable.toBitmap
 
 @Composable
 fun MainScreen(viewModel: MainScreenViewModel) {
@@ -51,7 +48,6 @@ fun MainScreen(viewModel: MainScreenViewModel) {
         }
     }
     var isDropdownVisible by remember { mutableStateOf(false) }
-    val pm = context.packageManager
     var anchorWidth by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
 
@@ -64,7 +60,7 @@ fun MainScreen(viewModel: MainScreenViewModel) {
     ) {
         Box( modifier = Modifier
             .fillMaxWidth(0.8f)
-            .onGloballyPositioned { coords ->              // ← измеряем Box
+            .onGloballyPositioned { coords ->
                 anchorWidth = with(density) {
                     coords.size.width.toDp()
                 }
@@ -92,19 +88,14 @@ fun MainScreen(viewModel: MainScreenViewModel) {
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Image(
-                                    bitmap = info.loadIcon(pm).toBitmap().asImageBitmap(),
+                                    bitmap = info.icon,
                                     contentDescription = null,
                                     modifier = Modifier.size(24.dp),
                                 )
                                 Spacer(modifier = Modifier.weight(1f))
-                                Text(text = info.loadLabel(pm).toString())
+                                Text(text = info.label)
                                 Spacer(modifier = Modifier.weight(1f))
-                                Checkbox(onCheckedChange = {
-                                    viewModel.onCheckedChange(
-                                        index,
-                                        info.packageName
-                                    )
-                                }, checked = viewModel.isCheckBoxActive[index])
+                                Checkbox(onCheckedChange = null, checked = viewModel.isCheckBoxActive[index])
                             }
                         }
                     )
@@ -132,7 +123,7 @@ fun MainScreen(viewModel: MainScreenViewModel) {
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .height(50.dp),
-            enabled = viewModel.isFormValid.value,
+            enabled = viewModel.isButtonConnectEnable.value,
         ) {
             Text(text = "Connect")
         }

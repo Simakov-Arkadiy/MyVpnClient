@@ -26,6 +26,8 @@ import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
 import javax.inject.Inject
 import android.util.Base64
+import java.io.IOException
+import java.nio.channels.ClosedChannelException
 
 class MyVpnService() : VpnService() {
     @Inject
@@ -67,7 +69,6 @@ class MyVpnService() : VpnService() {
         scope.cancel()
         super.onDestroy()
     }
-
     private suspend fun tunToUdp(
         tun: ParcelFileDescriptor,
         ch: DatagramChannel,
@@ -76,15 +77,18 @@ class MyVpnService() : VpnService() {
     ) = runInterruptible {
         val input = FileInputStream(tun.fileDescriptor)
         val buf = ByteArray(32767)
-        while (true) {
-            val n = input.read(buf)
-            if (n < 0) break
-            if (n == 0) continue
-            val packet = codec.encode(nonces.next(), buf, n)
-            try {
-                ch.write(ByteBuffer.wrap(packet))
-            } catch (e: PortUnreachableException) {
+        try {
+            while (true) {
+                val n = input.read(buf)
+                if (n < 0) break
+                if (n == 0) continue
+                val packet = codec.encode(nonces.next(), buf, n)
+                try {
+                    ch.write(ByteBuffer.wrap(packet))
+                } catch (e: PortUnreachableException) {
+                }
             }
+        } catch (e: IOException) {
         }
     }
 
@@ -96,16 +100,21 @@ class MyVpnService() : VpnService() {
         val output = FileOutputStream(tun.fileDescriptor)
         val buf = ByteArray(32767)
         val bb = ByteBuffer.wrap(buf)
-        while (true) {
-            bb.clear()
-            val n = try {
-                ch.read(bb)
-            } catch (e: PortUnreachableException) {
-                continue
+        try {
+            while (true) {
+                bb.clear()
+                val n = try {
+                    ch.read(bb)
+                } catch (e: PortUnreachableException) {
+                    continue
+                } catch (e: ClosedChannelException) {
+                    break
+                }
+                if (n <= 0) continue
+                val plain = codec.decode(buf, n) ?: continue
+                output.write(plain)
             }
-            if (n <= 0) continue
-            val plain = codec.decode(buf, n) ?: continue
-            output.write(plain)
+        } catch (e: IOException) {
         }
     }
 
